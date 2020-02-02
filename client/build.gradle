@@ -1,0 +1,47 @@
+plugins {
+  id "com.moowork.node" version "1.3.1"
+}
+configurations {
+  webjar
+}
+
+ext.clientDistDir = "${project.buildDir}/ng-dist"
+ext.clientBuildResourcesDir = "${project.buildDir}/webjar/src/main/generated/${project.name}/resources"
+
+
+
+npm_run_prodBuild{
+  dependsOn npm_run_lint
+}
+
+// Copies the build outcome from task "ngBuild" into the directory used
+// for building the webjar
+task generateWebjarResources(type: Copy) {
+  inputs.dir clientDistDir
+  outputs.dir clientBuildResourcesDir
+
+  dependsOn npm_run_prodBuild
+  from fileTree(clientDistDir)
+  into "${clientBuildResourcesDir}/META-INF/resources/webjars/${project.name}"
+}
+
+// Builds the webjar containing the client application resources
+task webjarJar(type: Jar) {
+  group = 'Build'
+  description = 'Build a jar having the JavaScript App in META/resources/<project name>'
+
+  destinationDir = file("${project.buildDir}/libs")
+  baseName = project.name
+  version = project.version
+  classifier = "webjar"
+
+  dependsOn generateWebjarResources
+
+  from "${clientBuildResourcesDir}"
+}
+
+artifacts {
+  webjar webjarJar
+}
+
+rootProject.build.dependsOn webjarJar
