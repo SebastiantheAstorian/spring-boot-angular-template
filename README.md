@@ -18,4 +18,9 @@ using webjars. Then I add a configuration to the backend which serves the transp
 //TODO: add version
 - Angular x.x.x
 
+# What are the steps to reproduce this?
+1. First of, create a Spring Boot Application (I recommend using Spring initalizr) with your desired config (java version, spring version, dependencies,...)
+2. Create an Angular Project inside (```ng new``` in the root directory of the project)
+3. 
+
 # What files are important if I want to do this without copying the project? 
