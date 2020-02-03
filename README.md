@@ -21,6 +21,15 @@ using webjars. Then I add a configuration to the backend which serves the transp
 # What are the steps to reproduce this?
 1. First of, create a Spring Boot Application (I recommend using Spring initalizr) with your desired config (java version, spring version, dependencies,...)
 2. Create an Angular Project inside (```ng new``` in the root directory of the project)
-3. 
+3. Edit angular.json by changing the output path to "build/ng-dist"
+4. Edit package.json by adding a new script: ```"prodBuild": "ng build --prod=true"```
+5. Add client as subproject to gradle project (see build.gradle files for build)
+6. Add config in application.properties
+7. Add a Resolver Class for the static resources
 
 # What files are important if I want to do this without copying the project? 
+- .\src\main\java\me\katakompe\springbootangulartemplate\configuration\WebViewResolver.java
+- .\client\build.gradle
+- .\build.gradle
+- .\src\main\resources\application.properties
+- .\settings.gradle
