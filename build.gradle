@@ -1,12 +1,75 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:2.2.4.RELEASE"
+        classpath "io.spring.gradle:dependency-management-plugin:1.0.9.RELEASE"
+        classpath "org.owasp:dependency-check-gradle:3.1.1"
+    }
+}
+
 plugins {
     id 'org.springframework.boot' version '2.2.4.RELEASE'
     id 'io.spring.dependency-management' version '1.0.9.RELEASE'
     id 'java'
 }
 
+apply plugin: "org.springframework.boot"
+
 group = 'me.katakompe'
 version = '0.0.1-SNAPSHOT'
 sourceCompatibility = '11'
+
+allprojects {
+    apply plugin: 'java'
+
+    group 'me.katakompe'
+
+    task sourceJar(type: Jar, dependsOn: classes) {
+        description = 'Assembles a jar archive containing the java source files'
+        classifier = 'sources'
+        from sourceSets.main.allSource
+    }
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
+
+    task javadocJar(type: Jar, dependsOn: javadoc) {
+        classifier = 'javadoc'
+        from javadoc.destinationDir
+    }
+
+}
+
+def moduleType = { includeSuffix, excludePrefix = [] ->
+    subprojects.findAll({ subproject ->
+        includeSuffix.any { subproject.name.endsWith("-$it") } &&
+                !excludePrefix.any { subproject.name.startsWith(it) }
+    })
+}
+def angularModule = moduleType(["client"])
+def javaModules = moduleType([""])
+
+configure(angularModule) {
+    apply plugin: 'java'
+}
+
+
+configure(javaModules) {
+    apply plugin: 'java'
+    apply plugin: 'idea'
+    apply plugin: "io.spring.dependency-management"
+    apply plugin: 'org.owasp.dependencycheck'
+
+    tasks.withType(JavaCompile) {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+        options.compilerArgs << '-parameters'
+        options.incremental = true
+    }
+}
 
 configurations {
     developmentOnly
@@ -32,23 +95,14 @@ dependencies {
     testImplementation('org.springframework.boot:spring-boot-starter-test') {
         exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
     }
+    compile project(path: ':client', configuration: 'webjar')
+
 }
 
-def moduleType = { includeSuffix, excludePrefix = [] ->
-    subprojects.findAll({ subproject ->
-        includeSuffix.any { subproject.name.endsWith("-$it") } &&
-                !excludePrefix.any { subproject.name.startsWith(it) }
-    })
-}
-
-task sourceJar(type: Jar, dependsOn: classes) {
-    description = 'Assembles a jar archive containing the java source files'
-    classifier = 'sources'
-    from sourceSets.main.allSource
-}
 
 artifacts {
     archives sourceJar
+    archives javadocJar
 }
 
 
